@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">One Piece</string>
     <string name="description_refresh">Refresh</string>
+    <string name="loading">Waiting for sync...</string>
 </resources>
