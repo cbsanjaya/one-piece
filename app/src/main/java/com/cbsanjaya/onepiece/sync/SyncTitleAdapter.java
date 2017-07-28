@@ -30,7 +30,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -183,13 +185,13 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
         int id;
         String title;
         String link;
-        String published;
+        Long published;
         while (c.moveToNext()) {
             syncResult.stats.numEntries++;
             id = c.getInt(COLUMN_ID);
             title = c.getString(COLUMN_TITLE);
             link = c.getString(COLUMN_LINK);
-            published = c.getString(COLUMN_PUBLISHED);
+            published = c.getLong(COLUMN_PUBLISHED);
             Title match = entryMap.get(link);
             if (match != null) {
                 // Entry exists. Remove from entry map to prevent insert later.
@@ -257,12 +259,22 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
     private Title readTitle(Element element) {
         String title;
         String link;
-        String published;
+        long published;
 
         title = element.select("td a[href]").get(0).text();
         String linkOri = element.select("td a[href]").get(0).attr("href");
         link = DOMAIN_URL + linkOri.replace("-terbaru-1.html", "-terbaru.html");
-        published = element.select(".c2").text();
+        String publishedOri = element.select(".c2").text();
+
+        SimpleDateFormat format = new SimpleDateFormat("MMM, dd yyyy");
+        Date date = null;
+        try {
+            date = format.parse(publishedOri);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        published = date.getTime();
 
         return new Title(title, link, published);
     }
@@ -284,9 +296,9 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
     private static class Title {
         public final String title;
         public final String link;
-        public final String published;
+        public final long published;
 
-        Title(String title, String link, String published) {
+        Title(String title, String link, long published) {
             this.title = title;
             this.link = link;
             this.published = published;

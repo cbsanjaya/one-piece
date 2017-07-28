@@ -21,10 +21,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.cbsanjaya.onepiece.provider.TitleContract;
 import com.cbsanjaya.onepiece.sync.SyncTitleUtils;
 import com.cbsanjaya.onepiece.utils.GenericAccountService;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainFragment extends ListFragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -124,6 +128,21 @@ public class MainFragment extends ListFragment
                 TO_FIELDS,           // Layout fields to use
                 0                    // No flags
         );
+        mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
+            @Override
+            public boolean setViewValue(View view, Cursor cursor, int i) {
+                if (i == COLUMN_PUBLISHED) {
+                    // Convert timestamp to human-readable date
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
+                    Date date = new Date(cursor.getLong(i));
+                    ((TextView) view).setText( dateFormat.format(date));
+                    return true;
+                } else {
+                    // Let SimpleCursorAdapter handle other fields automatically
+                    return false;
+                }
+            }
+        });
         setListAdapter(mAdapter);
         setEmptyText(getText(R.string.loading));
         getLoaderManager().initLoader(0, null, this);
@@ -166,7 +185,7 @@ public class MainFragment extends ListFragment
                 PROJECTION,                // Projection
                 null,                           // Selection
                 null,                           // Selection args
-                TitleContract.Title.COLUMN_NAME_TITLE + " desc"); // Sort
+                TitleContract.Title.COLUMN_NAME_PUBLISHED + " desc"); // Sort
     }
 
     /**
