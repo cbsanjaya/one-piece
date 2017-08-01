@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
     public static final String TAG = "SyncTitleAdapter";
@@ -266,7 +267,7 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
         link = DOMAIN_URL + linkOri.replace("-terbaru-1.html", "-terbaru.html");
         String publishedOri = element.select(".c2").text();
 
-        SimpleDateFormat format = new SimpleDateFormat("MMM, dd yyyy");
+        SimpleDateFormat format = new SimpleDateFormat("MMM, dd yyyy", Locale.US);
         Date date = null;
         try {
             date = format.parse(publishedOri);
