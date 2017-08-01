@@ -253,9 +253,9 @@ public class MainFragment extends ListFragment
         }
 
         Log.i(TAG, "Opening URL: " + articleUrlString);
-        // Get a Uri object for the URL string
-        Uri articleURL = Uri.parse(articleUrlString);
-        Intent i = new Intent(Intent.ACTION_VIEW, articleURL);
+        Intent i = new Intent(this.getActivity(), ListImageActivity.class);
+        i.putExtra(ListImageActivity.EXTRA_TITLE, c.getString(COLUMN_TITLE));
+        i.putExtra(ListImageActivity.EXTRA_URL, c.getString(COLUMN_URL_STRING));
         startActivity(i);
     }
 
