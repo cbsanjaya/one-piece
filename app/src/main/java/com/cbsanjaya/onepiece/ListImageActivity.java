@@ -71,6 +71,12 @@ public class ListImageActivity extends AppCompatActivity {
         new DownloadTask(mAdapter, url).execute();
     }
 
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
+
     final class CustomAdapter extends RecyclerView.Adapter<ImageViewHolder> {
 
         private final Context context;
