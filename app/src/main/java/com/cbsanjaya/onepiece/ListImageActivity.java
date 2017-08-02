@@ -2,7 +2,6 @@ package com.cbsanjaya.onepiece;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -14,9 +13,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import com.cbsanjaya.onepiece.utils.NetUtils;
+import com.github.chrisbanes.photoview.PhotoView;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
 
@@ -27,8 +26,6 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,7 +107,7 @@ public class ListImageActivity extends AppCompatActivity {
     class ImageViewHolder extends RecyclerView.ViewHolder {
 
         private static final String TAG = "ImageViewHolder";
-        ImageView imageView;
+        PhotoView imageView;
 
         public ImageViewHolder(View view) {
             super(view);
