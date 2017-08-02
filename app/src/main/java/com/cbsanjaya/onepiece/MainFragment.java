@@ -99,6 +99,7 @@ public class MainFragment extends ListFragment
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
     }
@@ -111,6 +112,7 @@ public class MainFragment extends ListFragment
      */
     @Override
     public void onAttach(Context context) {
+        Log.i(TAG, "onAttach");
         super.onAttach(context);
 
         // Create account, if needed
@@ -119,6 +121,7 @@ public class MainFragment extends ListFragment
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        Log.i(TAG, "onViewCreated");
         super.onViewCreated(view, savedInstanceState);
 
         mAdapter = new SimpleCursorAdapter(
@@ -151,6 +154,7 @@ public class MainFragment extends ListFragment
 
     @Override
     public void onResume() {
+        Log.i(TAG, "onResume");
         super.onResume();
         mSyncStatusObserver.onStatusChanged(0);
 
@@ -162,6 +166,7 @@ public class MainFragment extends ListFragment
 
     @Override
     public void onPause() {
+        Log.i(TAG, "onPause");
         super.onPause();
         if (mSyncObserverHandle != null) {
             ContentResolver.removeStatusChangeListener(mSyncObserverHandle);
@@ -179,6 +184,7 @@ public class MainFragment extends ListFragment
      */
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        Log.i(TAG, "onCreateLoader");
         // We only have one loader, so we can ignore the value of i.
         // (It'll be '0', as set in onCreate().)
         return new CursorLoader(getActivity(),  // Context
@@ -195,6 +201,7 @@ public class MainFragment extends ListFragment
      */
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        Log.i(TAG, "onLoadFinished");
         mAdapter.changeCursor(cursor);
     }
 
@@ -206,6 +213,7 @@ public class MainFragment extends ListFragment
      */
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
+        Log.i(TAG, "onLoaderReset");
         mAdapter.changeCursor(null);
     }
 
@@ -214,6 +222,7 @@ public class MainFragment extends ListFragment
      */
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        Log.i(TAG, "onCreateOptionsMenu");
         super.onCreateOptionsMenu(menu, inflater);
         mOptionsMenu = menu;
         inflater.inflate(R.menu.main, menu);
@@ -224,6 +233,7 @@ public class MainFragment extends ListFragment
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Log.i(TAG, "onOptionsItemSelected: " + item.getItemId());
         switch (item.getItemId()) {
             // If the user clicks the "Refresh" button.
             case R.id.menu_refresh:
@@ -238,6 +248,7 @@ public class MainFragment extends ListFragment
      */
     @Override
     public void onListItemClick(ListView listView, View view, int position, long id) {
+        Log.i(TAG, "onListItemClick");
         super.onListItemClick(listView, view, position, id);
 
         // Get a URI for the selected item, then start an Activity that displays the URI. Any
@@ -268,6 +279,7 @@ public class MainFragment extends ListFragment
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void setRefreshActionButtonState(boolean refreshing) {
+        Log.i(TAG, "setRefreshActionButtonState");
         if (mOptionsMenu == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
             return;
         }
