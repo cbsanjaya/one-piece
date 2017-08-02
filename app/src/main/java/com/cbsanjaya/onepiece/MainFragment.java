@@ -29,6 +29,7 @@ import com.cbsanjaya.onepiece.utils.GenericAccountService;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class MainFragment extends ListFragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -133,7 +134,7 @@ public class MainFragment extends ListFragment
             public boolean setViewValue(View view, Cursor cursor, int i) {
                 if (i == COLUMN_PUBLISHED) {
                     // Convert timestamp to human-readable date
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy");
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.US);
                     Date date = new Date(cursor.getLong(i));
                     ((TextView) view).setText( dateFormat.format(date));
                     return true;
