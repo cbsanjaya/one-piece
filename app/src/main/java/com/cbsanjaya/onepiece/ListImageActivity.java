@@ -36,6 +36,7 @@ public class ListImageActivity extends AppCompatActivity {
     RecyclerView mRecycler;
     CustomAdapter mAdapter;
     String url;
+    Picasso mPicasso;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +55,12 @@ public class ListImageActivity extends AppCompatActivity {
         String titleEpisode = title.substring(0, title.indexOf(" :"));
 
         setTitle(titleEpisode);
+
+        mPicasso = Picasso.with(this);
+        if (BuildConfig.BUILD_TYPE.equals("debug")) {
+            mPicasso.setIndicatorsEnabled(true);
+        }
+
         mRecycler = (RecyclerView) findViewById(R.id.rvImage);
         mRecycler.setHasFixedSize(true);
 
@@ -145,8 +152,7 @@ public class ListImageActivity extends AppCompatActivity {
                 }
             };
 
-            Picasso.with(context)
-                    .load(url)
+            mPicasso.load(url)
                     .placeholder(R.drawable.placeholder)
                     .error(R.drawable.error)
                     .transform(transformation)
