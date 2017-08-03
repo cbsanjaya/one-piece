@@ -1,6 +1,7 @@
 package com.cbsanjaya.onepiece;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -27,7 +28,9 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ListImageActivity extends AppCompatActivity {
 
@@ -37,6 +40,13 @@ public class ListImageActivity extends AppCompatActivity {
     CustomAdapter mAdapter;
     String url;
     Picasso mPicasso;
+
+    // Shared preferences object
+    private SharedPreferences mPreferences;
+    // Name of shared preferences file
+    private static final String mBasePreFile = "com.cbsanjaya.onepiece.title.";
+    private static final String URLS_KEY = "urls_key";
+    private Set<String> prefUrls;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,13 +78,34 @@ public class ListImageActivity extends AppCompatActivity {
         mRecycler.setAdapter(mAdapter);
         mRecycler.setLayoutManager(new LinearLayoutManager(this));
 
-        new DownloadTask(mAdapter, url).execute();
+        String prefFile = mBasePreFile + titleEpisode;
+
+        mPreferences = getSharedPreferences(prefFile, MODE_PRIVATE);
+        prefUrls = mPreferences.getStringSet(URLS_KEY, new HashSet<String>());
+
+        if (prefUrls.size() == 0) {
+            new DownloadTask(mAdapter, url).execute();
+        } else {
+            mAdapter.changeList(new ArrayList<>(prefUrls));
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putStringSet(URLS_KEY, prefUrls);
+        editor.apply();
     }
 
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
+    }
+
+    public void setPrefUrls(List<String> prefUrls) {
+        this.prefUrls = new HashSet<>(prefUrls);
     }
 
     final class CustomAdapter extends RecyclerView.Adapter<ImageViewHolder> {
@@ -97,6 +128,7 @@ public class ListImageActivity extends AppCompatActivity {
 
         public void changeList(List<String> urls) {
             this.urls = urls;
+            setPrefUrls(this.urls);
             notifyDataSetChanged();
         }
         @Override
