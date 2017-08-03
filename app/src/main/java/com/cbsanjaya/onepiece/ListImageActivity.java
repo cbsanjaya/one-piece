@@ -78,7 +78,7 @@ public class ListImageActivity extends AppCompatActivity {
         mRecycler.setAdapter(mAdapter);
         mRecycler.setLayoutManager(new LinearLayoutManager(this));
 
-        String prefFile = mBasePreFile + titleEpisode;
+        String prefFile = mBasePreFile + titleEpisode.replace(" ", "");
 
         mPreferences = getSharedPreferences(prefFile, MODE_PRIVATE);
         prefUrls = mPreferences.getStringSet(URLS_KEY, new HashSet<String>());
