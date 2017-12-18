@@ -1,101 +1,53 @@
 package com.cbsanjaya.onepiece;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import com.cbsanjaya.onepiece.utils.NetUtils;
-import com.github.chrisbanes.photoview.PhotoView;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Transformation;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 public class ListImageActivity extends AppCompatActivity {
 
+    public static String EXTRA_CHAPTER = "EXTRA_CHAPTER";
     public static String EXTRA_TITLE = "EXTRA_TITLE";
-    public static String EXTRA_URL = "EXTRA_URL";
-    RecyclerView mRecycler;
-    CustomAdapter mAdapter;
-    String url;
-    Picasso mPicasso;
-
-    // Shared preferences object
-    private SharedPreferences mPreferences;
-    // Name of shared preferences file
-    private static final String mBasePreFile = "com.cbsanjaya.onepiece.title.";
-    private static final String URLS_KEY = "urls_key";
-    private Set<String> prefUrls;
+    WebView mWvImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_image);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
             ab.setDisplayHomeAsUpEnabled(true);
         }
 
+        String chapter = getIntent().getStringExtra(EXTRA_CHAPTER);
         String title = getIntent().getStringExtra(EXTRA_TITLE);
-        url = getIntent().getStringExtra(EXTRA_URL);
 
-        String titleEpisode = title.substring(0, title.indexOf(" :"));
+        String titleEpisode = chapter + " : " + title;
 
         setTitle(titleEpisode);
 
-        mPicasso = Picasso.with(this);
-        if (BuildConfig.BUILD_TYPE.equals("debug")) {
-            mPicasso.setIndicatorsEnabled(true);
-        }
-
-        mRecycler = (RecyclerView) findViewById(R.id.rvImage);
-        mRecycler.setHasFixedSize(true);
-
-        mAdapter = new CustomAdapter(this);
-        mRecycler.setAdapter(mAdapter);
-        mRecycler.setLayoutManager(new LinearLayoutManager(this));
-
-        String prefFile = mBasePreFile + titleEpisode.replace(" ", "");
-
-        mPreferences = getSharedPreferences(prefFile, MODE_PRIVATE);
-        prefUrls = mPreferences.getStringSet(URLS_KEY, new HashSet<String>());
-
-        if (prefUrls.size() == 0) {
-            new DownloadTask(mAdapter, url).execute();
-        } else {
-            mAdapter.changeList(new ArrayList<>(prefUrls));
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        SharedPreferences.Editor editor = mPreferences.edit();
-        editor.putStringSet(URLS_KEY, prefUrls);
-        editor.apply();
+        String url = "https://www.cbsanjaya.com/onepiece/chapter/" + chapter;
+        mWvImage = findViewById(R.id.wvImage);
+        WebSettings settings= mWvImage.getSettings();
+        settings.setBuiltInZoomControls(true);
+        settings.setDisplayZoomControls(false);
+        settings.setAppCachePath(getCacheDir().getPath());
+        settings.setAppCacheEnabled(true);
+        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        mWvImage.setWebViewClient(new WebViewClient() {
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                String errorString = getString(R.string.connection_error);
+                String html = "<html><body><center>"+ errorString +"</center></body></html>";
+                view.loadData(html, "text/html", null);
+            }
+        });
+        mWvImage.loadUrl(url);
     }
 
     @Override
@@ -104,143 +56,15 @@ public class ListImageActivity extends AppCompatActivity {
         return true;
     }
 
-    public void setPrefUrls(List<String> prefUrls) {
-        this.prefUrls = new HashSet<>(prefUrls);
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mWvImage.restoreState(savedInstanceState);
     }
 
-    final class CustomAdapter extends RecyclerView.Adapter<ImageViewHolder> {
-
-        private final Context context;
-        private final LayoutInflater mInflater;
-        private List<String> urls;
-
-        public CustomAdapter(Context context) {
-            mInflater = LayoutInflater.from(context);
-            this.context = context;
-            this.urls = new ArrayList<>();
-        }
-
-        public CustomAdapter(Context context, List<String> urls) {
-            mInflater = LayoutInflater.from(context);
-            this.context = context;
-            this.urls = urls;
-        }
-
-        public void changeList(List<String> urls) {
-            this.urls = urls;
-            setPrefUrls(this.urls);
-            notifyDataSetChanged();
-        }
-        @Override
-        public ImageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View itemView = mInflater.inflate(R.layout.image_item, parent, false);
-
-            return new ImageViewHolder(itemView);
-        }
-
-        @Override
-        public void onBindViewHolder(ImageViewHolder holder, int position) {
-            holder.bindToHolder(this.context, this.urls.get(position));
-        }
-
-        @Override
-        public int getItemCount() {
-            return urls.size();
-        }
-    }
-
-    class ImageViewHolder extends RecyclerView.ViewHolder {
-
-        private static final String TAG = "ImageViewHolder";
-        PhotoView imageView;
-
-        public ImageViewHolder(View view) {
-            super(view);
-
-            imageView = view.findViewById(R.id.imageView);
-        }
-
-        public void bindToHolder(Context context, String url) {
-            Transformation transformation = new Transformation() {
-
-                @Override
-                public Bitmap transform(Bitmap source) {
-                    Bitmap result = source;
-
-                    int targetWidth = imageView.getWidth();
-
-                    if (targetWidth != 0) {
-                        Log.i(TAG, "sourceWidth: " + source.getWidth() + ", sourceHeight: " + source.getHeight());
-                        double aspectRatio = (double) source.getHeight() / (double) source.getWidth();
-                        int targetHeight = (int) (targetWidth * aspectRatio);
-                        Log.i(TAG, "targetWidth: " + targetWidth + ", targetHeight: " + targetHeight);
-                        result = Bitmap.createScaledBitmap(source, targetWidth, targetHeight, false);
-                        if (result != source) {
-                            // Same bitmap is returned if sizes are the same
-                            source.recycle();
-                        }
-                    }
-
-                    return result;
-                }
-
-                @Override
-                public String key() {
-                    return "transformation" + " desiredWidth";
-                }
-            };
-
-            mPicasso.load(url)
-                    .placeholder(R.drawable.placeholder)
-                    .error(R.drawable.error)
-                    .transform(transformation)
-                    .into(imageView);
-        }
-
-    }
-
-    class DownloadTask extends AsyncTask<String, Void, List<String>> {
-
-        private final CustomAdapter adapter;
-        private final String url;
-
-        public DownloadTask(CustomAdapter adapter, String url) {
-            this.adapter = adapter;
-            this.url = url;
-        }
-
-        @Override
-        protected List<String> doInBackground(String... strings) {
-            List<String> urls = null;
-            try {
-                InputStream inputStream = NetUtils.downloadUrl(url);
-                urls = parseUrls(inputStream);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return urls;
-        }
-
-        private List<String> parseUrls(InputStream stream) throws IOException {
-            List<String> urls = new ArrayList<>();
-
-            Document doc = Jsoup.parse(stream, "UTF-8", url);
-            Elements elements =  doc.select("#imgholder a img[src]");
-            for (Element element : elements) {
-                String url = element.attr("src");
-                urls.add(url);
-            }
-
-            return urls;
-
-        }
-
-        @Override
-        protected void onPostExecute(List<String> strings) {
-            super.onPostExecute(strings);
-            this.adapter.changeList(strings);
-        }
-
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mWvImage.saveState(outState);
     }
 }

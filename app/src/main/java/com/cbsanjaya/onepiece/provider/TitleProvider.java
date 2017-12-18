@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 import com.cbsanjaya.onepiece.utils.SelectionBuilder;
 
@@ -54,7 +55,7 @@ public class TitleProvider  extends ContentProvider {
      * Determine the mime type for entries returned by a given URI.
      */
     @Override
-    public String getType(Uri uri) {
+    public String getType(@NonNull Uri uri) {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case ROUTE_TITLES:
@@ -73,7 +74,7 @@ public class TitleProvider  extends ContentProvider {
      * (/entries/{ID}).
      */
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
+    public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs,
                         String sortOrder) {
         SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
         SelectionBuilder builder = new SelectionBuilder();
@@ -103,7 +104,7 @@ public class TitleProvider  extends ContentProvider {
      * Insert a new entry into the database.
      */
     @Override
-    public Uri insert(Uri uri, ContentValues values) {
+    public Uri insert(@NonNull Uri uri, ContentValues values) {
         final SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
         assert db != null;
         final int match = sUriMatcher.match(uri);
@@ -129,7 +130,7 @@ public class TitleProvider  extends ContentProvider {
      * Delete an entry by database by URI.
      */
     @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
+    public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         SelectionBuilder builder = new SelectionBuilder();
         final SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
@@ -161,7 +162,7 @@ public class TitleProvider  extends ContentProvider {
      * Update an etry in the database by URI.
      */
     @Override
-    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+    public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         SelectionBuilder builder = new SelectionBuilder();
         final SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
@@ -196,32 +197,31 @@ public class TitleProvider  extends ContentProvider {
      */
     static class TitleDatabase extends SQLiteOpenHelper {
         /** Schema version. */
-        public static final int DATABASE_VERSION = 1;
+        static final int DATABASE_VERSION = 1;
         /** Filename for SQLite file. */
-        public static final String DATABASE_NAME = "feed.db";
+        static final String DATABASE_NAME = "onepiece.db";
 
         private static final String TYPE_TEXT = " TEXT";
-        private static final String TYPE_INTEGER = " INTEGER";
+        private static final String TYPE_REAL = " REAL";
         private static final String COMMA_SEP = ",";
         /** SQL statement to create "entry" table. */
-        private static final String SQL_CREATE_ENTRIES =
+        private static final String SQL_CREATE_TITLES =
                 "CREATE TABLE " + TitleContract.Title.TABLE_NAME + " (" +
                         TitleContract.Title._ID + " INTEGER PRIMARY KEY," +
-                        TitleContract.Title.COLUMN_NAME_TITLE    + TYPE_TEXT + COMMA_SEP +
-                        TitleContract.Title.COLUMN_NAME_LINK + TYPE_TEXT + COMMA_SEP +
-                        TitleContract.Title.COLUMN_NAME_PUBLISHED + TYPE_TEXT + ")";
+                        TitleContract.Title.COLUMN_NAME_CHAPTER    + TYPE_REAL + COMMA_SEP +
+                        TitleContract.Title.COLUMN_NAME_TITLE + TYPE_TEXT + ")";
 
         /** SQL statement to drop "entry" table. */
         private static final String SQL_DELETE_ENTRIES =
                 "DROP TABLE IF EXISTS " + TitleContract.Title.TABLE_NAME;
 
-        public TitleDatabase(Context context) {
+        TitleDatabase(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
         }
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            db.execSQL(SQL_CREATE_ENTRIES);
+            db.execSQL(SQL_CREATE_TITLES);
         }
 
         @Override

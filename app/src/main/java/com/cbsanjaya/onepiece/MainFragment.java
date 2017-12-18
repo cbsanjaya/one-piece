@@ -60,9 +60,8 @@ public class MainFragment extends ListFragment
      */
     private static final String[] PROJECTION = new String[]{
             TitleContract.Title._ID,
-            TitleContract.Title.COLUMN_NAME_TITLE,
-            TitleContract.Title.COLUMN_NAME_LINK,
-            TitleContract.Title.COLUMN_NAME_PUBLISHED
+            TitleContract.Title.COLUMN_NAME_CHAPTER,
+            TitleContract.Title.COLUMN_NAME_TITLE
     };
 
     // Column indexes. The index of a column in the Cursor is the same as its relative position in
@@ -70,18 +69,16 @@ public class MainFragment extends ListFragment
     /** Column index for _ID */
     private static final int COLUMN_ID = 0;
     /** Column index for title */
-    private static final int COLUMN_TITLE = 1;
+    private static final int COLUMN_CHAPTER = 1;
     /** Column index for link */
-    private static final int COLUMN_URL_STRING = 2;
-    /** Column index for published */
-    private static final int COLUMN_PUBLISHED = 3;
+    private static final int COLUMN_TITLE = 2;
 
     /**
      * List of Cursor columns to read from when preparing an adapter to populate the ListView.
      */
     private static final String[] FROM_COLUMNS = new String[]{
-            TitleContract.Title.COLUMN_NAME_TITLE,
-            TitleContract.Title.COLUMN_NAME_PUBLISHED
+            TitleContract.Title.COLUMN_NAME_CHAPTER,
+            TitleContract.Title.COLUMN_NAME_TITLE
     };
 
     /**
@@ -132,21 +129,7 @@ public class MainFragment extends ListFragment
                 TO_FIELDS,           // Layout fields to use
                 0                    // No flags
         );
-        mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
-            @Override
-            public boolean setViewValue(View view, Cursor cursor, int i) {
-                if (i == COLUMN_PUBLISHED) {
-                    // Convert timestamp to human-readable date
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.US);
-                    Date date = new Date(cursor.getLong(i));
-                    ((TextView) view).setText( dateFormat.format(date));
-                    return true;
-                } else {
-                    // Let SimpleCursorAdapter handle other fields automatically
-                    return false;
-                }
-            }
-        });
+
         setListAdapter(mAdapter);
         setEmptyText(getText(R.string.loading));
         getLoaderManager().initLoader(0, null, this);
@@ -192,7 +175,7 @@ public class MainFragment extends ListFragment
                 PROJECTION,                // Projection
                 null,                           // Selection
                 null,                           // Selection args
-                TitleContract.Title.COLUMN_NAME_PUBLISHED + " desc"); // Sort
+                TitleContract.Title.COLUMN_NAME_CHAPTER + " desc"); // Sort
     }
 
     /**
@@ -258,16 +241,16 @@ public class MainFragment extends ListFragment
         // Get the item at the selected position, in the form of a Cursor.
         Cursor c = (Cursor) mAdapter.getItem(position);
         // Get the link to the article represented by the item.
-        String articleUrlString = c.getString(COLUMN_URL_STRING);
-        if (articleUrlString == null) {
+        String chapterString = c.getString(COLUMN_CHAPTER);
+        if (chapterString == null) {
             Log.e(TAG, "Attempt to launch entry with null link");
             return;
         }
 
-        Log.i(TAG, "Opening URL: " + articleUrlString);
+        Log.i(TAG, "Opening URL: " + chapterString);
         Intent i = new Intent(this.getActivity(), ListImageActivity.class);
+        i.putExtra(ListImageActivity.EXTRA_CHAPTER, c.getString(COLUMN_CHAPTER));
         i.putExtra(ListImageActivity.EXTRA_TITLE, c.getString(COLUMN_TITLE));
-        i.putExtra(ListImageActivity.EXTRA_URL, c.getString(COLUMN_URL_STRING));
         startActivity(i);
     }
 

@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.util.JsonReader;
 import android.util.Log;
 
 import com.cbsanjaya.onepiece.provider.TitleContract;
@@ -26,6 +27,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -46,8 +48,8 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
      * <p>This points to the Android Developers Blog. (Side note: We highly recommend reading the
      * Android Developer Blog to stay up to date on the latest Android platform developments!)
      */
-    private static final String DOMAIN_URL = "http://www.mangacanblog.com/";
-    private static final String TITLE_URL = DOMAIN_URL + "baca-komik-one_piece-bahasa-indonesia-online-terbaru.html";
+    private static final String DOMAIN_URL = "https://www.cbsanjaya.com/";
+    private static final String TITLE_URL = DOMAIN_URL + "onepiece/all.json";
 
     /**
      * Network connection timeout, in milliseconds.
@@ -69,15 +71,13 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
      */
     private static final String[] PROJECTION = new String[] {
             TitleContract.Title._ID,
-            TitleContract.Title.COLUMN_NAME_TITLE,
-            TitleContract.Title.COLUMN_NAME_LINK,
-            TitleContract.Title.COLUMN_NAME_PUBLISHED};
+            TitleContract.Title.COLUMN_NAME_CHAPTER,
+            TitleContract.Title.COLUMN_NAME_TITLE};
 
     // Constants representing column positions from PROJECTION.
     public static final int COLUMN_ID = 0;
-    public static final int COLUMN_TITLE = 1;
-    public static final int COLUMN_LINK = 2;
-    public static final int COLUMN_PUBLISHED = 3;
+    public static final int COLUMN_CHAPTER = 1;
+    public static final int COLUMN_TITLE = 2;
 
     /**
      * Constructor. Obtains handle to content resolver for later use.
@@ -167,12 +167,12 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
         final List<Title> titles = parseTitle(stream);
         Log.i(TAG, "Parsing complete. Found " + titles.size() + " titles");
 
-        ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
+        ArrayList<ContentProviderOperation> batch = new ArrayList<>();
 
         // Build hash table of incoming titles
-        HashMap<String, Title> entryMap = new HashMap<String, Title>();
+        HashMap<Double, Title> entryMap = new HashMap<>();
         for (Title e : titles) {
-            entryMap.put(e.link, e);
+            entryMap.put(e.chapter, e);
         }
 
         // Get list of all items
@@ -184,31 +184,27 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
 
         // Find stale data
         int id;
+        Double chapter;
         String title;
-        String link;
-        Long published;
         while (c.moveToNext()) {
             syncResult.stats.numEntries++;
             id = c.getInt(COLUMN_ID);
+            chapter = c.getDouble(COLUMN_CHAPTER);
             title = c.getString(COLUMN_TITLE);
-            link = c.getString(COLUMN_LINK);
-            published = c.getLong(COLUMN_PUBLISHED);
-            Title match = entryMap.get(link);
+            Title match = entryMap.get(chapter);
             if (match != null) {
                 // Entry exists. Remove from entry map to prevent insert later.
-                entryMap.remove(link);
+                entryMap.remove(chapter);
                 // Check to see if the entry needs to be updated
                 Uri existingUri = TitleContract.Title.CONTENT_URI.buildUpon()
                         .appendPath(Integer.toString(id)).build();
                 if ((match.title != null && !match.title.equals(title)) ||
-                        (match.link != null && !match.link.equals(link)) ||
-                        (match.published != published)) {
+                        (match.chapter != null && !match.chapter.equals(chapter))) {
                     // Update existing record
                     Log.i(TAG, "Scheduling update: " + existingUri);
                     batch.add(ContentProviderOperation.newUpdate(existingUri)
+                            .withValue(TitleContract.Title.COLUMN_NAME_CHAPTER, match.chapter)
                             .withValue(TitleContract.Title.COLUMN_NAME_TITLE, match.title)
-                            .withValue(TitleContract.Title.COLUMN_NAME_LINK, match.link)
-                            .withValue(TitleContract.Title.COLUMN_NAME_PUBLISHED, match.published)
                             .build());
                     syncResult.stats.numUpdates++;
                 } else {
@@ -227,11 +223,10 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
 
         // Add new items
         for (Title e : entryMap.values()) {
-            Log.i(TAG, "Scheduling insert: link=" + e.link);
+            Log.i(TAG, "Scheduling insert: chapter=" + e.chapter);
             batch.add(ContentProviderOperation.newInsert(TitleContract.Title.CONTENT_URI)
+                    .withValue(TitleContract.Title.COLUMN_NAME_CHAPTER, e.chapter)
                     .withValue(TitleContract.Title.COLUMN_NAME_TITLE, e.title)
-                    .withValue(TitleContract.Title.COLUMN_NAME_LINK, e.link)
-                    .withValue(TitleContract.Title.COLUMN_NAME_PUBLISHED, e.published)
                     .build());
             syncResult.stats.numInserts++;
         }
@@ -246,38 +241,44 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private List<Title> parseTitle(InputStream stream) throws IOException {
+        JsonReader reader = new JsonReader(new InputStreamReader(stream, "UTF-8"));
+        try {
+            return readTitleArray(reader);
+        } finally {
+            reader.close();
+        }
+    }
+
+    private List<Title> readTitleArray(JsonReader reader) throws IOException{
         List<Title> titles = new ArrayList<>();
 
-        Document doc = Jsoup.parse(stream, "UTF-8", TITLE_URL);
-        Elements elements =  doc.select(".updates tr");
-        for (Element element : elements) {
-            titles.add(readTitle(element));
+        reader.beginArray();
+        while (reader.hasNext()) {
+            titles.add(readTitle(reader));
         }
-
+        reader.endArray();
         return titles;
     }
 
-    private Title readTitle(Element element) {
-        String title;
-        String link;
-        long published;
+    private Title readTitle(JsonReader reader) throws IOException {
+        Double chapter = 0D;
+        String title = "";
 
-        title = element.select("td a[href]").get(0).text();
-        String linkOri = element.select("td a[href]").get(0).attr("href");
-        link = DOMAIN_URL + linkOri.replace("-terbaru-1.html", "-terbaru.html");
-        String publishedOri = element.select(".c2").text();
-
-        SimpleDateFormat format = new SimpleDateFormat("MMM, dd yyyy", Locale.US);
-        Date date = null;
-        try {
-            date = format.parse(publishedOri);
-        } catch (ParseException e) {
-            e.printStackTrace();
+        reader.beginObject();
+        while (reader.hasNext()) {
+            String name = reader.nextName();
+            if (name.equals("chapter")) {
+                String _chapter = reader.nextString();
+                chapter = Double.valueOf(_chapter);
+            } else if (name.equals("title")) {
+                title = reader.nextString();
+            } else {
+                reader.skipValue();
+            }
         }
+        reader.endObject();
 
-        published = date.getTime();
-
-        return new Title(title, link, published);
+        return new Title(chapter, title);
     }
 
     /**
@@ -295,14 +296,12 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private static class Title {
+        public final Double chapter;
         public final String title;
-        public final String link;
-        public final long published;
 
-        Title(String title, String link, long published) {
+        Title(Double chapter, String title) {
+            this.chapter = chapter;
             this.title = title;
-            this.link = link;
-            this.published = published;
         }
     }
 

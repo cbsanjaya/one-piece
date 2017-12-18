@@ -47,19 +47,14 @@ public class TitleContract {
         /**
          * Table name where records are stored for "entry" resources.
          */
-        public static final String TABLE_NAME = "title";
+        public static final String TABLE_NAME = "onepiece_chapter";
         /**
-         * Article title
+         * Chapter Number
+         */
+        public static final String COLUMN_NAME_CHAPTER = "chapter";
+        /**
+         * Title Chpater
          */
         public static final String COLUMN_NAME_TITLE = "title";
-        /**
-         * Article hyperlink. Corresponds to the rel="alternate" link in the
-         * Atom spec.
-         */
-        public static final String COLUMN_NAME_LINK = "link";
-        /**
-         * Date article was published.
-         */
-        public static final String COLUMN_NAME_PUBLISHED = "published";
     }
 }
