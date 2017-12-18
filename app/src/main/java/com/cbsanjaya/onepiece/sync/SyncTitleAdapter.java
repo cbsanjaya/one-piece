@@ -19,10 +19,6 @@ import android.util.Log;
 
 import com.cbsanjaya.onepiece.provider.TitleContract;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -32,12 +28,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
 public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
     public static final String TAG = "SyncTitleAdapter";

@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SyncStatusObserver;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -21,15 +20,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.cbsanjaya.onepiece.provider.TitleContract;
 import com.cbsanjaya.onepiece.sync.SyncTitleUtils;
 import com.cbsanjaya.onepiece.utils.GenericAccountService;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class MainFragment extends ListFragment
         implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -263,7 +257,7 @@ public class MainFragment extends ListFragment
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void setRefreshActionButtonState(boolean refreshing) {
         Log.i(TAG, "setRefreshActionButtonState");
-        if (mOptionsMenu == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+        if (mOptionsMenu == null) {
             return;
         }
 
