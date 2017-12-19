@@ -1,5 +1,6 @@
 package com.cbsanjaya.onepiece;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -39,6 +40,11 @@ public class ListImageActivity extends AppCompatActivity {
         settings.setAppCachePath(getCacheDir().getPath());
         settings.setAppCacheEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
+
         mWvImage.setWebViewClient(new WebViewClient() {
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                 String errorString = getString(R.string.connection_error);
