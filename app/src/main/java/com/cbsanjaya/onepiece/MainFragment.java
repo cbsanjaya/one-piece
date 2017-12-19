@@ -2,6 +2,7 @@ package com.cbsanjaya.onepiece;
 
 import android.accounts.Account;
 import android.annotation.TargetApi;
+import android.app.SearchManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -15,11 +16,13 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FilterQueryProvider;
 import android.widget.ListView;
 
 import com.cbsanjaya.onepiece.provider.TitleContract;
@@ -123,6 +126,31 @@ public class MainFragment extends ListFragment
                     0                    // No flags
             );
         }
+        mAdapter.setFilterQueryProvider(new FilterQueryProvider() {
+            @Override
+            public Cursor runQuery(CharSequence charSequence) {
+                Cursor cur = null;
+                String selection = null;
+                String args[] = null;
+
+                if (charSequence.length() > 0 ){
+                    selection = TitleContract.Title.COLUMN_NAME_CHAPTER + " = ?";
+                    args = new String[] {(String) charSequence};
+                }
+                if (getContext() != null) {
+                    cur = getContext()
+                            .getContentResolver()
+                            .query(
+                                    TitleContract.Title.CONTENT_URI, // URI
+                                    PROJECTION,                // Projection
+                                    selection,                           // Selection
+                                    args,                           // Selection args
+                                    TitleContract.Title.COLUMN_NAME_CHAPTER + " desc"
+                            );
+                }
+                return cur;
+            }
+        });
 
         setListAdapter(mAdapter);
         setEmptyText(getText(R.string.loading));
@@ -207,6 +235,31 @@ public class MainFragment extends ListFragment
         super.onCreateOptionsMenu(menu, inflater);
         mOptionsMenu = menu;
         inflater.inflate(R.menu.main, menu);
+        // Associate searchable configuration with the SearchView
+        if (getActivity() != null) {
+            SearchManager searchManager =
+                    (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
+
+            SearchView searchView =
+                    (SearchView) menu.findItem(R.id.search).getActionView();
+
+            if (searchManager != null) {
+                searchView.setSearchableInfo(
+                        searchManager.getSearchableInfo(getActivity().getComponentName()));
+            }
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String query) {
+                    mAdapter.getFilter().filter(query);
+                    return true;
+                }
+            });
+        }
     }
 
     /**

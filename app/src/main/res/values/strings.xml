@@ -3,4 +3,6 @@
     <string name="description_refresh">Refresh</string>
     <string name="loading">Waiting for sync</string>
     <string name="connection_error">Cannot Connect to Internet</string>
+    <string name="search_title">Search</string>
+    <string name="search_hint">Search Chapter</string>
 </resources>
