@@ -26,9 +26,6 @@ public class SyncTitleService extends Service {
     }
 
     @Override
-    /**
-     * Logging-only destructor.
-     */
     public void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "Service destroyed");
