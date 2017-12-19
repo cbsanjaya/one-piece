@@ -281,7 +281,7 @@ public class MainFragment extends ListFragment
      * button. If a sync is active or pending, the Refresh button is replaced by an indeterminate
      * ProgressBar; otherwise, the button itself is displayed.
      */
-    private SyncStatusObserver mSyncStatusObserver = new SyncStatusObserver() {
+    private final SyncStatusObserver mSyncStatusObserver = new SyncStatusObserver() {
         /** Callback invoked with the sync adapter status changes. */
         @Override
         public void onStatusChanged(int which) {
