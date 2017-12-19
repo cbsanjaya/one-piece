@@ -38,6 +38,7 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
      */
     private static final String DOMAIN_URL = "https://www.cbsanjaya.com/";
     private static final String TITLE_URL = DOMAIN_URL + "onepiece/all.json";
+    private static final String TITLE_LAST5_URL = DOMAIN_URL + "onepiece/last5.json";
 
     /**
      * Network connection timeout, in milliseconds.
@@ -95,10 +96,33 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
                               ContentProviderClient provider, SyncResult syncResult) {
         Log.i(TAG, "Beginning network synchronization");
         try {
-            final URL location = new URL(TITLE_URL);
+
+//            final URL location = new URL(TITLE_URL);
+            URL location;
             InputStream stream = null;
 
             try {
+                Cursor cursor = getContext()
+                        .getContentResolver()
+                        .query(
+                                TitleContract.Title.CONTENT_URI,
+                                new String[] {"count(*) AS count"},
+                                null,
+                                null,
+                                null
+                        );
+
+                assert cursor != null;
+                cursor.moveToFirst();
+                int count = cursor.getInt(0);
+                cursor.close();
+
+                if ( count == 0 ) {
+                    location = new URL(TITLE_URL);
+                } else {
+                    location = new URL(TITLE_LAST5_URL);
+                }
+
                 Log.i(TAG, "Streaming data from network: " + location);
                 stream = downloadUrl(location);
                 updateLocalFeedData(stream, syncResult);
