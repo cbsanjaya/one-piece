@@ -1,7 +1,6 @@
 package com.cbsanjaya.onepiece.sync;
 
 import android.accounts.Account;
-import android.annotation.TargetApi;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentProviderOperation;
@@ -11,7 +10,6 @@ import android.content.OperationApplicationException;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.JsonReader;
@@ -19,21 +17,18 @@ import android.util.Log;
 
 import com.cbsanjaya.onepiece.provider.TitleContract;
 
-import org.xmlpull.v1.XmlPullParserException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
-    public static final String TAG = "SyncTitleAdapter";
+    private static final String TAG = "SyncTitleAdapter";
 
     /**
      * URL to fetch content from during a sync.
@@ -68,24 +63,15 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
             TitleContract.Title.COLUMN_NAME_TITLE};
 
     // Constants representing column positions from PROJECTION.
-    public static final int COLUMN_ID = 0;
-    public static final int COLUMN_CHAPTER = 1;
-    public static final int COLUMN_TITLE = 2;
+    private static final int COLUMN_ID = 0;
+    private static final int COLUMN_CHAPTER = 1;
+    private static final int COLUMN_TITLE = 2;
 
     /**
      * Constructor. Obtains handle to content resolver for later use.
      */
-    public SyncTitleAdapter(Context context, boolean autoInitialize) {
+    SyncTitleAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
-        mContentResolver = context.getContentResolver();
-    }
-
-    /**
-     * Constructor. Obtains handle to content resolver for later use.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public SyncTitleAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs) {
-        super(context, autoInitialize, allowParallelSyncs);
         mContentResolver = context.getContentResolver();
     }
 
@@ -131,14 +117,6 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
             Log.e(TAG, "Error reading from network: " + e.toString());
             syncResult.stats.numIoExceptions++;
             return;
-        } catch (XmlPullParserException e) {
-            Log.e(TAG, "Error parsing feed: " + e.toString());
-            syncResult.stats.numParseExceptions++;
-            return;
-        } catch (ParseException e) {
-            Log.e(TAG, "Error parsing feed: " + e.toString());
-            syncResult.stats.numParseExceptions++;
-            return;
         } catch (RemoteException e) {
             Log.e(TAG, "Error updating database: " + e.toString());
             syncResult.databaseError = true;
@@ -151,9 +129,9 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
         Log.i(TAG, "Network synchronization complete");
     }
 
-    public void updateLocalFeedData(final InputStream stream, final SyncResult syncResult)
-            throws IOException, XmlPullParserException, RemoteException,
-            OperationApplicationException, ParseException {
+    private void updateLocalFeedData(final InputStream stream, final SyncResult syncResult)
+            throws IOException, RemoteException,
+            OperationApplicationException {
         final ContentResolver contentResolver = getContext().getContentResolver();
 
         Log.i(TAG, "Parsing stream");
@@ -233,6 +211,7 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
         // syncToNetwork=false in the line above to prevent duplicate syncs.
     }
 
+    @SuppressWarnings("TryFinallyCanBeTryWithResources")
     private List<Title> parseTitle(InputStream stream) throws IOException {
         JsonReader reader = new JsonReader(new InputStreamReader(stream, "UTF-8"));
         try {
@@ -260,13 +239,17 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
-            if (name.equals("chapter")) {
-                String _chapter = reader.nextString();
-                chapter = Double.valueOf(_chapter);
-            } else if (name.equals("title")) {
-                title = reader.nextString();
-            } else {
-                reader.skipValue();
+            switch (name) {
+                case "chapter":
+                    String _chapter = reader.nextString();
+                    chapter = Double.valueOf(_chapter);
+                    break;
+                case "title":
+                    title = reader.nextString();
+                    break;
+                default:
+                    reader.skipValue();
+                    break;
             }
         }
         reader.endObject();
@@ -288,9 +271,9 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
         return conn.getInputStream();
     }
 
-    private static class Title {
-        public final Double chapter;
-        public final String title;
+    private class Title {
+        private final Double chapter;
+        private final String title;
 
         Title(Double chapter, String title) {
             this.chapter = chapter;
