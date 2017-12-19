@@ -36,7 +36,6 @@ public class ListImageActivity extends AppCompatActivity {
         mWvImage = findViewById(R.id.wvImage);
         WebSettings settings= mWvImage.getSettings();
         settings.setBuiltInZoomControls(true);
-        settings.setDisplayZoomControls(false);
         settings.setAppCachePath(getCacheDir().getPath());
         settings.setAppCacheEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
