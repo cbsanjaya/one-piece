@@ -36,8 +36,7 @@ public class GenericAccountService extends Service {
         //
         // This string should *not* be localized. If the user switches locale, we would not be
         // able to locate the old account, and may erroneously register multiple accounts.
-        final String accountName = ACCOUNT_NAME;
-        return new Account(accountName, accountType);
+        return new Account(ACCOUNT_NAME, accountType);
     }
 
     @Override
@@ -57,7 +56,7 @@ public class GenericAccountService extends Service {
     }
 
     public class Authenticator extends AbstractAccountAuthenticator {
-        public Authenticator(Context context) {
+        Authenticator(Context context) {
             super(context);
         }
 
