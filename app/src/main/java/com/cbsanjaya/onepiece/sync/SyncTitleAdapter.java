@@ -59,14 +59,7 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
      * Project used when querying content provider. Returns all known fields.
      */
     private static final String[] PROJECTION = new String[] {
-            TitleContract.Title._ID,
-            TitleContract.Title.COLUMN_NAME_CHAPTER,
-            TitleContract.Title.COLUMN_NAME_TITLE};
-
-    // Constants representing column positions from PROJECTION.
-    private static final int COLUMN_ID = 0;
-    private static final int COLUMN_CHAPTER = 1;
-    private static final int COLUMN_TITLE = 2;
+            TitleContract.Title.COLUMN_NAME_CHAPTER };
 
     /**
      * Constructor. Obtains handle to content resolver for later use.
@@ -96,9 +89,7 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
                               ContentProviderClient provider, SyncResult syncResult) {
         Log.i(TAG, "Beginning network synchronization");
         try {
-
-//            final URL location = new URL(TITLE_URL);
-            URL location;
+            String location;
             InputStream stream = null;
 
             try {
@@ -118,14 +109,14 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
                 cursor.close();
 
                 if ( count == 0 ) {
-                    location = new URL(TITLE_URL);
+                    location = TITLE_URL;
                 } else {
-                    location = new URL(TITLE_LAST5_URL);
+                    location = TITLE_LAST5_URL;
                 }
 
                 Log.i(TAG, "Streaming data from network: " + location);
-                stream = downloadUrl(location);
-                updateLocalFeedData(stream, syncResult);
+                stream = downloadUrl(new URL(location));
+                updateLocalFeedData(location, stream, syncResult);
                 // Makes sure that the InputStream is closed after the app is
                 // finished using it.
             } finally {
@@ -153,7 +144,8 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
         Log.i(TAG, "Network synchronization complete");
     }
 
-    private void updateLocalFeedData(final InputStream stream, final SyncResult syncResult)
+    private void updateLocalFeedData(final String location, final InputStream stream,
+                                     final SyncResult syncResult)
             throws IOException, RemoteException,
             OperationApplicationException {
         final ContentResolver contentResolver = getContext().getContentResolver();
@@ -170,51 +162,23 @@ public class SyncTitleAdapter extends AbstractThreadedSyncAdapter {
             entryMap.put(e.chapter, e);
         }
 
-        // Get list of all items
-        Log.i(TAG, "Fetching local titles for merge");
-        Uri uri = TitleContract.Title.CONTENT_URI; // Get all titles
-        Cursor c = contentResolver.query(uri, PROJECTION, null, null, null);
-        assert c != null;
-        Log.i(TAG, "Found " + c.getCount() + " local titles. Computing merge solution...");
-
-        // Find stale data
-        int id;
-        Double chapter;
-        String title;
-        while (c.moveToNext()) {
-            syncResult.stats.numEntries++;
-            id = c.getInt(COLUMN_ID);
-            chapter = c.getDouble(COLUMN_CHAPTER);
-            title = c.getString(COLUMN_TITLE);
-            Title match = entryMap.get(chapter);
-            if (match != null) {
-                // Entry exists. Remove from entry map to prevent insert later.
-                entryMap.remove(chapter);
-                // Check to see if the entry needs to be updated
-                Uri existingUri = TitleContract.Title.CONTENT_URI.buildUpon()
-                        .appendPath(Integer.toString(id)).build();
-                if ((match.title != null && !match.title.equals(title)) ||
-                        (match.chapter != null && !match.chapter.equals(chapter))) {
-                    // Update existing record
-                    Log.i(TAG, "Scheduling update: " + existingUri);
-                    batch.add(ContentProviderOperation.newUpdate(existingUri)
-                            .withValue(TitleContract.Title.COLUMN_NAME_CHAPTER, match.chapter)
-                            .withValue(TitleContract.Title.COLUMN_NAME_TITLE, match.title)
-                            .build());
-                    syncResult.stats.numUpdates++;
-                } else {
-                    Log.i(TAG, "No action: " + existingUri);
+        if (location.equals(TITLE_LAST5_URL)) {
+            final HashMap<Double, Title> tempMap = new HashMap<>(entryMap);
+            for (Title e : tempMap.values()) {
+                Uri uri = TitleContract.Title.CONTENT_URI;
+                Cursor c = contentResolver.query(
+                        uri,
+                        PROJECTION,
+                        TitleContract.Title.COLUMN_NAME_CHAPTER + " = ?",
+                        new String[] {String.valueOf(e.chapter)},
+                        null);
+                assert c != null;
+                if (c.moveToFirst()) {
+                    entryMap.remove(e.chapter);
                 }
-            } else {
-                // Entry doesn't exist. Remove it from the database.
-                Uri deleteUri = TitleContract.Title.CONTENT_URI.buildUpon()
-                        .appendPath(Integer.toString(id)).build();
-                Log.i(TAG, "Scheduling delete: " + deleteUri);
-                batch.add(ContentProviderOperation.newDelete(deleteUri).build());
-                syncResult.stats.numDeletes++;
+                c.close();
             }
         }
-        c.close();
 
         // Add new items
         for (Title e : entryMap.values()) {
