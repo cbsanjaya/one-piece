@@ -11,9 +11,8 @@
         readfile($filename);
         exit;
     }
-
-    const BASE_URL = "http://www.mangacanblog.com/" .
-    "baca-komik-one_piece-%s-%d-bahasa-indonesia-one_piece-%s-terbaru.html";
+    const BASE_DOMAIN = "http://www.mangacanblog.com/";
+    const BASE_URL = BASE_DOMAIN . "baca-komik-one_piece-%s-%d-bahasa-indonesia-one_piece-%s-terbaru.html";
 
     const IMAGE_TEMPLATE = '<img src="%s" id="responsive-image">';
 
@@ -23,13 +22,19 @@
         '</head><body>%s</body></html>';
     
     $url = sprintf(BASE_URL, $chapter, $chapter + 1, $chapter);
-    
+
     $html = file_get_html($url);
+    
+    $imageSource = "";
     foreach($html->find('div#manga img') as $e) {
         $imageUrl = $e->src;
+        $firstUrl = substr($imageUrl, 0, 4);
+        if ($firstUrl != "http") {
+            $imageUrl = BASE_DOMAIN . $imageUrl;
+        }
         $imageSource .= sprintf(IMAGE_TEMPLATE, $imageUrl);
     }
-    if (! isset($imageSource) ) {
+    if ($imageSource == "" ) {
         echo "Komik One Piece Chapter " . $chapter . " Tidak ditemukan";
         exit;
     }
