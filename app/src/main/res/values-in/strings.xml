@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">One Piece Comic</string>
+    <string name="search_hint">Cari Chapter</string>
+    <string name="search_title">Cari</string>
+    <string name="connection_error">Tidak Terhubung ke Internet</string>
+    <string name="loading">Tidak Ada Data</string>
+    <string name="description_refresh">Segarkan</string>
+</resources>

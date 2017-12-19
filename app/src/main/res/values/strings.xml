@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">Komik One Piece</string>
+    <string name="app_name">One Piece Comic</string>
     <string name="description_refresh">Refresh</string>
-    <string name="loading">Waiting for sync</string>
+    <string name="loading">No Data To Display</string>
     <string name="connection_error">Cannot Connect to Internet</string>
     <string name="search_title">Search</string>
     <string name="search_hint">Search Chapter</string>
