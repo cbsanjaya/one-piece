@@ -1,0 +1,11 @@
+# ignore json file
+*.json
+
+# ignore html downloaded
+*.html
+
+# ignore config file
+*.cnf
+
+# ignore image file
+*.jpg
