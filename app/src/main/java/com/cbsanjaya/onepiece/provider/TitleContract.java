@@ -16,7 +16,7 @@ public class TitleContract {
     /**
      * Base URI. (content://com.cbsanjaya.onepice)
      */
-    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
+    static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
 
     /**
      * Path component for "title"-type resources..
@@ -30,12 +30,12 @@ public class TitleContract {
         /**
          * MIME type for lists of entries.
          */
-        public static final String CONTENT_TYPE =
+        static final String CONTENT_TYPE =
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.onepiece.titles";
         /**
          * MIME type for individual entries.
          */
-        public static final String CONTENT_ITEM_TYPE =
+        static final String CONTENT_ITEM_TYPE =
                 ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.onepiece.title";
 
         /**
@@ -47,7 +47,7 @@ public class TitleContract {
         /**
          * Table name where records are stored for "entry" resources.
          */
-        public static final String TABLE_NAME = "onepiece_chapter";
+        static final String TABLE_NAME = "onepiece_chapter";
         /**
          * Chapter Number
          */
