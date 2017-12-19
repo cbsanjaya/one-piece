@@ -9,6 +9,7 @@ import android.content.SyncStatusObserver;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -60,8 +61,6 @@ public class MainFragment extends ListFragment
 
     // Column indexes. The index of a column in the Cursor is the same as its relative position in
     // the projection.
-    /** Column index for _ID */
-    private static final int COLUMN_ID = 0;
     /** Column index for title */
     private static final int COLUMN_CHAPTER = 1;
     /** Column index for link */
@@ -111,18 +110,19 @@ public class MainFragment extends ListFragment
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         Log.i(TAG, "onViewCreated");
         super.onViewCreated(view, savedInstanceState);
-
-        mAdapter = new SimpleCursorAdapter(
-                getActivity(),       // Current context
-                android.R.layout.simple_list_item_activated_2,  // Layout for individual rows
-                null,                // Cursor
-                FROM_COLUMNS,        // Cursor columns to use
-                TO_FIELDS,           // Layout fields to use
-                0                    // No flags
-        );
+        if (getActivity() != null) {
+            mAdapter = new SimpleCursorAdapter(
+                    getActivity(),       // Current context
+                    android.R.layout.simple_list_item_activated_2,  // Layout for individual rows
+                    null,                // Cursor
+                    FROM_COLUMNS,        // Cursor columns to use
+                    TO_FIELDS,           // Layout fields to use
+                    0                    // No flags
+            );
+        }
 
         setListAdapter(mAdapter);
         setEmptyText(getText(R.string.loading));
@@ -164,12 +164,16 @@ public class MainFragment extends ListFragment
         Log.i(TAG, "onCreateLoader");
         // We only have one loader, so we can ignore the value of i.
         // (It'll be '0', as set in onCreate().)
-        return new CursorLoader(getActivity(),  // Context
-                TitleContract.Title.CONTENT_URI, // URI
-                PROJECTION,                // Projection
-                null,                           // Selection
-                null,                           // Selection args
-                TitleContract.Title.COLUMN_NAME_CHAPTER + " desc"); // Sort
+        CursorLoader loader = null;
+        if(getActivity() != null) {
+            loader = new CursorLoader(getActivity(),  // Context
+                    TitleContract.Title.CONTENT_URI, // URI
+                    PROJECTION,                // Projection
+                    null,                           // Selection
+                    null,                           // Selection args
+                    TitleContract.Title.COLUMN_NAME_CHAPTER + " desc"); // Sort
+        }
+        return loader;
     }
 
     /**
@@ -281,33 +285,29 @@ public class MainFragment extends ListFragment
         /** Callback invoked with the sync adapter status changes. */
         @Override
         public void onStatusChanged(int which) {
-            getActivity().runOnUiThread(new Runnable() {
-                /**
-                 * The SyncAdapter runs on a background thread. To update the UI, onStatusChanged()
-                 * runs on the UI thread.
-                 */
-                @Override
-                public void run() {
-                    // Create a handle to the account that was created by
-                    // SyncService.CreateSyncAccount(). This will be used to query the system to
-                    // see how the sync status has changed.
-                    Account account = GenericAccountService.GetAccount(SyncTitleUtils.ACCOUNT_TYPE);
-                    if (account == null) {
-                        // GetAccount() returned an invalid value. This shouldn't happen, but
-                        // we'll set the status to "not refreshing".
-                        setRefreshActionButtonState(false);
-                        return;
-                    }
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(new Runnable() {
+                    /**
+                     * The SyncAdapter runs on a background thread. To update the UI, onStatusChanged()
+                     * runs on the UI thread.
+                     */
+                    @Override
+                    public void run() {
+                        // Create a handle to the account that was created by
+                        // SyncService.CreateSyncAccount(). This will be used to query the system to
+                        // see how the sync status has changed.
+                        Account account = GenericAccountService.GetAccount(SyncTitleUtils.ACCOUNT_TYPE);
 
-                    // Test the ContentResolver to see if the sync adapter is active or pending.
-                    // Set the state of the refresh button accordingly.
-                    boolean syncActive = ContentResolver.isSyncActive(
-                            account, TitleContract.CONTENT_AUTHORITY);
-                    boolean syncPending = ContentResolver.isSyncPending(
-                            account, TitleContract.CONTENT_AUTHORITY);
-                    setRefreshActionButtonState(syncActive || syncPending);
-                }
-            });
+                        // Test the ContentResolver to see if the sync adapter is active or pending.
+                        // Set the state of the refresh button accordingly.
+                        boolean syncActive = ContentResolver.isSyncActive(
+                                account, TitleContract.CONTENT_AUTHORITY);
+                        boolean syncPending = ContentResolver.isSyncPending(
+                                account, TitleContract.CONTENT_AUTHORITY);
+                        setRefreshActionButtonState(syncActive || syncPending);
+                    }
+                });
+            }
         }
     };
 }
