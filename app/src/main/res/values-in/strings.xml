@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">One Piece Comic</string>
+    <string name="app_name">Baca Komik One Piece</string>
     <string name="search_hint">Cari Chapter</string>
     <string name="search_title">Cari</string>
     <string name="connection_error">Tidak Terhubung ke Internet</string>
     <string name="loading">Tidak Ada Data</string>
     <string name="description_refresh">Segarkan</string>
+    <string name="channel_name">Saluran One Piece</string>
+    <string name="channel_description">Saluran Notifikasi One Piece</string>
+    <string name="main_label">Komik One Piece</string>
 </resources>

@@ -1,14 +1,6 @@
 apply plugin: 'com.android.application'
 
 android {
-    signingConfigs {
-        config {
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-            storeFile file('/home/cahya/workspaces/android/onepiece.keystore')
-            storePassword 'android'
-        }
-    }
     compileSdkVersion 27
     buildToolsVersion "27.0.2"
     defaultConfig {
@@ -24,10 +16,6 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.config
-        }
-        debug {
-            signingConfig signingConfigs.config
         }
     }
 }

@@ -1,8 +1,11 @@
 <resources>
-    <string name="app_name">One Piece Comic</string>
+    <string name="app_name">Read One Piece Comic</string>
     <string name="description_refresh">Refresh</string>
     <string name="loading">No Data To Display</string>
     <string name="connection_error">Cannot Connect to Internet</string>
     <string name="search_title">Search</string>
     <string name="search_hint">Search Chapter</string>
+    <string name="channel_name">One Piece Channel</string>
+    <string name="channel_description">One Piece Channel Notification</string>
+    <string name="main_label">One Piece Comic</string>
 </resources>
