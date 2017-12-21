@@ -7,8 +7,8 @@ android {
         applicationId "com.cbsanjaya.onepiece"
         minSdkVersion 16
         targetSdkVersion 27
-        versionCode 6
-        versionName "elang hitam"
+        versionCode 7
+        versionName "flamingo"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
