@@ -1,10 +1,10 @@
 <?php
 
-// include lib
-include('simple_html_dom.php');
-
 function comicChapter($file, $comic, $chapter)
 {
+    // include lib
+    include('simple_html_dom.php');
+    
     $baseDomain = "http://www.mangacanblog.com/";
     $baseUrl = $baseDomain . "baca-komik-" . $comic . "-%s-%d-bahasa-indonesia-" . $comic . "-%s-terbaru.html";
     $url = sprintf($baseUrl, $chapter, $chapter + 1, $chapter);
