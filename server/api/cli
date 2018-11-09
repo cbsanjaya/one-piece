@@ -1,0 +1,51 @@
+<?php
+
+parse_str(implode('&', array_slice($argv, 1)), $_GET);
+
+$comic = $_GET['comic'];
+
+$dir = getcwd() . "/comic/" . $comic;
+
+if (!file_exists($dir)) {
+    mkdir($dir, 0777, true);
+}
+
+    // include lib
+    include('./lib/simple_html_dom.php');
+
+    //Link to download file...
+    $rootUrl = "http://www.mangacanblog.com/"; 
+    $url = $rootUrl . "baca-komik-" . $comic . "-bahasa-indonesia-online-terbaru.html";
+
+    //Code to get the file...
+    //$html = file_get_contents($url);
+    
+    // Retrieve the DOM from a given URL
+    $html = file_get_html($url);
+
+    // Find the DIV tag with an id of "myId"
+    $dataMentah = array();
+    foreach($html->find('a.chaptersrec') as $e) {
+        $title = $e->innertext;
+        $titleImage = strpos($title, '<img'); 
+        
+        if (strpos($title, '<img')) {
+            $title = substr($title, 0, $titleImage - 1);
+        }
+
+        $spliter =  strpos($title, ':');
+        $spaceBeforeChapter = strrpos(substr($title, 0, $spliter - 2), ' ');
+        $chapter = substr($title, $spaceBeforeChapter + 1, $spliter - $spaceBeforeChapter - 2);
+        $dataMentah[] = array("chapter" => $chapter, "title" => $title);
+    }
+
+    $allData = json_encode($dataMentah);
+
+    function saveToFile($filename, $data) {
+        //save the file...
+        $fh = fopen($filename,"w");
+        fwrite($fh,$data);
+        fclose($fh);
+    }
+
+    saveToFile($dir . "/index.json", $allData);
