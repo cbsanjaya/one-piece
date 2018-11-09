@@ -23,8 +23,11 @@ if (!file_exists($dir)) {
     // Retrieve the DOM from a given URL
     $html = file_get_html($url);
 
-    // Find the DIV tag with an id of "myId"
+    $obj = new \stdClass;
+    $obj->comic = $comic;
+
     $dataMentah = array();
+    // Find the DIV tag with an id of "myId"
     foreach($html->find('a.chaptersrec') as $e) {
         $title = $e->innertext;
         $titleImage = strpos($title, '<img'); 
@@ -39,7 +42,8 @@ if (!file_exists($dir)) {
         $dataMentah[] = array("chapter" => $chapter, "title" => $title);
     }
 
-    $allData = json_encode($dataMentah);
+    $obj->contents = $dataMentah;
+    $allData = json_encode($obj);
 
     function saveToFile($filename, $data) {
         //save the file...
